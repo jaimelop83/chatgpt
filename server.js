@@ -1,63 +1,63 @@
-// server.js
-// Will handle requests and responses between the frontend and the Chat GPT API
+// Import libraries
+const express = require("express");
+require("dotenv").config(); // Import environmental variables
+const { Configuration, OpenAIApi } = require("openai"); // OpenAi API
 
-// Import required packages
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
+const app = express(); // server
 
-// load environmental variables from .env file
-require('dotenv').config();
-const secretKey = process.env.SECRET_KEY;
+// serve static files
+app.use(express.static('public', { 'Content-Type': 'application/javascript' }));
 
-// Set up Express App
-const app = express();
+app.use(express.json()); // middleware
 
-// Set up Middleware to handle JSON parsing
-app.use(express.json());
+const configuration = new Configuration({
+  apiKey: process.env.OPEN_AI_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
-// Middleware to handle CORS (optional, if you need to allow cross-origin requests)
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
-  });
+app.get("/", (req, res) => {
+  res.send("GPT CHAT HOME!");
+});
 
-  // Endpoint to generate response using Chat GPT API
-  app.post('/api/chat', authenticateToken, async (req, res) => {
-    const { message } = req.body;
+const path = require("path");
 
-    // Send request to Chat GPT API
-    const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
-        prompt: message,
-        max_tokens: 50,
-        n: 1,
-        stop: '\n'
-    }, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` // Use environmental variable for API key
-        }
+app.get("/chat", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.post("/chat", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    console.log("req.body is: ", req.body);
+    const response = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: `
+              ${prompt}
+      
+              
+            `,
+      max_tokens: 64,
+      temperature: 0,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+      stop: ["\n"],
     });
-    // Return response from Chat GPT API
-    res.json(response.data.choices[0].text);
-  });
 
-  // Middleware to authenticate JWT token
-  function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-  
-    if (token == null) return res.sendStatus(401);
-  
-    jwt.verify(token, process.env.SECRET_KEY, (err, user) => { // Use environment variable for secret key
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
+    return res.status(200).json({
+      success: true,
+      data: response.data.choices[0].text,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      error: error.response
+        ? error.response.data
+        : "There was an issue on the server",
     });
   }
+});
 
-  // Start server
-const PORT = process.env.PORT || 5000; // Use environment variable for port or default to 5000
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => console.log(`Server listening on port ${port}`));
