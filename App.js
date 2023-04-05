@@ -1,51 +1,36 @@
-import logo from "./logo.svg";
-import "./App.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userContent, setUserContent] = useState("");
-  const getDataDemo = async () => {
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       setLoading(true);
-      let res = await axios.get("http://localhost:8080/basic/test");
-      setMessages([res.data.completion]);
+      const response = await axios.post("http://localhost:8080/chat", {
+        prompt: userContent,
+      });
+      setMessages([...messages, response.data.data]);
+      setUserContent("");
     } catch (err) {
       console.log({ err });
     } finally {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    // getDataDemo();
-  }, []);
 
   const renderMessages = () => {
     if (loading) {
       return <p>loading</p>;
     }
-    return <p>{JSON.stringify(messages)}</p>;
+    return messages.map((message, index) => (
+      <p key={index}>{message}</p>
+    ));
   };
 
-  // post '/basic' => {message:{user:string, content:string}}
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log();
-    try {
-      setLoading(true);
-      let res = await axios.post("http://localhost:8080/chat", {
-        message: { role: "user", content: userContent },
-      });
-      console.log(res);
-      setMessages([res.data.completion]);
-    } catch (err) {
-      console.log({ err });
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <div className="App">
       <h1>CHAT 5000</h1>

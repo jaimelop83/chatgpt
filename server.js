@@ -6,7 +6,7 @@ const { Configuration, OpenAIApi } = require("openai"); // OpenAi API
 const app = express(); // server
 
 // serve static files
-app.use(express.static('public', { 'Content-Type': 'application/javascript' }));
+app.use(express.static('public'));
 
 app.use(express.json()); // middleware
 
@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
 const path = require("path");
 
 app.get("/chat", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "./public/index.html"));
 });
 
 app.post("/chat", async (req, res) => {
