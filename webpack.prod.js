@@ -1,9 +1,13 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const path = require("path");
+const path = require('path');
 
 module.exports = {
-  mode: "development",
+  mode: "production",
   entry: "./index.js",
+  output: {
+    path: path.resolve(__dirname, 'build'),
+    filename: 'main.js',
+  },
   module: {
     rules: [
       {
@@ -13,6 +17,7 @@ module.exports = {
           loader: "babel-loader",
           options: {
             presets: ["@babel/preset-react"],
+            plugins: ["@babel/plugin-syntax-dynamic-import"]
           },
         },
       },
