@@ -3,3 +3,7 @@ node_modules/
 
 # ignore environmental variables
 .env
+
+# ignore the below
+.DS_Store
+*.log
