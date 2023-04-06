@@ -44,6 +44,7 @@ app.post("/chat", async (req, res) => {
       presence_penalty: 0.0,
       stop: ["\n"],
     });
+    // console.log("Response is: ", response); // log response
 
     return res.status(200).json({
       success: true,
