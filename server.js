@@ -2,12 +2,13 @@
 const express = require("express");
 require("dotenv").config(); // Import environmental variables
 const { Configuration, OpenAIApi } = require("openai"); // OpenAi API
+const cors = require("cors"); // Cross Origin Resource Sharing
 
 const app = express(); // server
 
 // serve static files
 app.use(express.static('public'));
-
+app.use(cors()); // middleware
 app.use(express.json()); // middleware
 
 const configuration = new Configuration({
@@ -15,14 +16,14 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-app.get("/", (req, res) => {
-  res.send("GPT CHAT HOME!");
-});
+// app.get("/", (req, res) => {
+//   res.send("GPT CHAT HOME!");
+// });
 
 const path = require("path");
 
-app.get("/chat", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "./index.html"));
 });
 
 app.post("/chat", async (req, res) => {

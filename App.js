@@ -1,47 +1,55 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [userContent, setUserContent] = useState("");
+  const [userPrompt, setUserPrompt] = useState('');
+  const [response, setResponse] = useState('');
+
+  const handleChange = (e) => {
+    setUserPrompt(e.target.value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const response = await axios.post("http://localhost:8080/chat", {
-        prompt: userContent,
-      });
-      setMessages([...messages, response.data.data]);
-      setUserContent("");
-    } catch (err) {
-      console.log({ err });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const renderMessages = () => {
-    if (loading) {
-      return <p>loading</p>;
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: userPrompt }),
+    };
+
+    try {
+      const res = await fetch('http://localhost:8080/chat', requestOptions);
+      const data = await res.json();
+
+      if (data.success) {
+        setResponse(data.data);
+      } else {
+        setResponse('Error: ' + data.error);
+      }
+    } catch (error) {
+      setResponse('Error: ' + error.message);
     }
-    return messages.map((message, index) => (
-      <p key={index}>{message}</p>
-    ));
   };
 
   return (
     <div className="App">
-      <h1>CHAT 5000</h1>
-      {renderMessages()}
+      <h1>GPT-3 Chat</h1>
       <form onSubmit={handleSubmit}>
+        <label htmlFor="userPrompt">Enter your message:</label>
         <input
-          value={userContent}
-          onChange={(e) => setUserContent(e.target.value)}
+          type="text"
+          id="userPrompt"
+          value={userPrompt}
+          onChange={handleChange}
+          required
         />
-        <button>{loading ? "loading" : "ask"}</button>
+        <button type="submit">Send</button>
       </form>
+      <div>
+        <h2>Response:</h2>
+        <p>{response}</p>
+      </div>
     </div>
   );
 }
